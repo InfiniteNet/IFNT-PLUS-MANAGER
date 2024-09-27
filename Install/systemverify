@@ -1,30 +1,57 @@
 #!/bin/bash
 
-## sshd back
-cp /etc/ssh/sshd_config /etc/ssh/sshd_back_$RANDOM > /dev/null 2>&1
+# Verifica se o script está sendo executado como root
+if [[ "$(whoami)" != "root" ]]; then
+    echo -e "\033[1;31mERRO: Este script deve ser executado como root!\033[0m"
+    exit 1
+fi
 
-## Acceso Rapido
-echo "/bin/menu" > /bin/h && chmod +x /bin/h > /dev/null 2>&1
+# Variáveis de URL para reuso
+BASE_URL="https://raw.githubusercontent.com/InfiniteNet/IFNT-PLUS-MANAGER/master"
+SKIN_PLUS_PATH="${BASE_URL}/Install/Skin_Plus"
 
-## Version
-rm -rf $HOME/versao* > /dev/null 2>&1 
-wget $HOME/versao https://raw.githubusercontent.com/InfiniteNet/IFNT-PLUS-MANAGER/master/versao > /dev/null 2>&1
+# Backup do arquivo de configuração do SSH
+BACKUP_PATH="/etc/ssh/sshd_back_$RANDOM"
+cp /etc/ssh/sshd_config $BACKUP_PATH > /dev/null 2>&1
+if [[ $? -eq 0 ]]; then
+    echo "Backup do SSHD criado em $BACKUP_PATH"
+else
+    echo "Falha ao criar backup do SSHD."
+    exit 1
+fi
 
-## Reinstalar
-echo "apt-get update -y; apt-get upgrade -y; wget https://raw.githubusercontent.com/InfiniteNet/IFNT-PLUS-MANAGER/master/Plus; chmod +x Plus; ./Plus" > /bin/sshplus > /dev/null 2>&1
+# Acesso rápido via comando 'h'
+echo "/bin/menu" > /bin/h
+chmod +x /bin/h > /dev/null 2>&1
+
+# Atualiza a versão
+rm -rf $HOME/versao* > /dev/null 2>&1
+wget -O $HOME/versao ${BASE_URL}/versao > /dev/null 2>&1
+if [[ $? -ne 0 ]]; then
+    echo "Erro ao baixar a versão."
+fi
+
+# Comando para reinstalar o sistema via 'sshplus'
+echo "apt-get update -y; apt-get upgrade -y; wget ${BASE_URL}/Plus; chmod +x Plus; ./Plus" > /bin/sshplus
 chmod +x /bin/sshplus > /dev/null 2>&1
 
-## Menu ADM
-wget -O /bin/menuV3 https://raw.githubusercontent.com/InfiniteNet/IFNT-PLUS-MANAGER/master/Install/Skin_Plus/menuV3/Install > /dev/null 2>&1
-chmod +x /bin/menuV3 > /dev/null 2>&1
+# Baixa e configura diferentes versões do menu
+declare -A menus=(
+    ["menuV3"]="${SKIN_PLUS_PATH}/menuV3/Install"
+    ["menuV2"]="${SKIN_PLUS_PATH}/menuV2/Install"
+    ["menuV1"]="${SKIN_PLUS_PATH}/menuV1/Install"
+)
 
-## Menu adaptado
-wget -O /bin/menuV2 https://raw.githubusercontent.com/InfiniteNet/IFNT-PLUS-MANAGER/master/Install/Skin_Plus/menuV2/Install > /dev/null 2>&1
-chmod +x /bin/menuV2 > /dev/null 2>&1
+for menu in "${!menus[@]}"; do
+    wget -O /bin/$menu "${menus[$menu]}" > /dev/null 2>&1
+    if [[ $? -eq 0 ]]; then
+        chmod +x /bin/$menu
+        echo "Menu $menu instalado com sucesso."
+    else
+        echo "Falha ao baixar o $menu."
+    fi
+done
 
-## Menu orginal
-wget -O /bin/menuV1 https://raw.githubusercontent.com/InfiniteNet/IFNT-PLUS-MANAGER/master/Install/Skin_Plus/menuV1/Install > /dev/null 2>&1
-chmod +x /bin/menuV1 > /dev/null 2>&1
-
-## Systemverify
+# Remove o systemverify antigo
 rm -rf $HOME/systemverify* > /dev/null 2>&1
+echo "Limpeza do systemverify realizada."
