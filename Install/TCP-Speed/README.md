@@ -1,6 +1,6 @@
 ﻿```
 * UPDATE --/--/---- - Proyecto Descontinuado
-* TCP-Tweaker-1.0 (Final Versión 2.0)
+* TCP-Tweaker-2.0 (Final Versión 2.0)
 ```
 ![logo](https://github.com/InfiniteNet/IFNT-PLUS-MANAGER/blob/master/Imagenes/TCP_Tweaker_TCP_SPEED.jpg)
 
