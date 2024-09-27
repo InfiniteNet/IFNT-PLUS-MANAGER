@@ -1,64 +1,105 @@
 #!/bin/bash
-IP=$(cat /etc/IP)
+
+# Verifica se o arquivo /etc/IP existe
+if [ -f /etc/IP ]; then
+    IP=$(cat /etc/IP)
+else
+    echo "Arquivo /etc/IP não encontrado!"
+    exit 1
+fi
+
+# Cria o diretório se não existir
 if [ ! -d /etc/SSHPlus/userteste ]; then
-mkdir /etc/SSHPlus/userteste
+    mkdir -p /etc/SSHPlus/userteste
 fi
-tput setaf 7 ; tput setab 4 ; tput bold ; printf '%30s%s%-15s\n' "Criar usuario teste" ; tput sgr0
+
+# Exibe o cabeçalho
+tput setaf 7; tput setab 4; tput bold; printf '%30s%s%-15s\n' "Criar usuario teste"; tput sgr0
 echo ""
-[ "$(ls -A /etc/SSHPlus/userteste)" ] && echo -e "\033[1;32mTeste Ativo!\033[1;37m" || echo -e "\033[1;31mNenhum test ativo!\033[0m"
-echo ""
-for testeson in $(ls /etc/SSHPlus/userteste |sort |sed 's/.sh//g')
-do
-echo "$testeson"
+
+# Verifica se há usuários de teste ativos
+if [ "$(ls -A /etc/SSHPlus/userteste)" ]; then
+    echo -e "\033[1;32mTeste Ativo!\033[1;37m"
+else
+    echo -e "\033[1;31mNenhum test ativo!\033[0m"
+fi
+
+# Lista os usuários de teste
+for testeson in $(ls /etc/SSHPlus/userteste | sort | sed 's/.sh//g'); do
+    echo "$testeson"
 done
+
 echo ""
+# Solicita o nome do usuário
 echo -ne "\033[1;32mNome do usuario\033[1;37m: "; read nome
-if [[ -z $nome ]]
-then
+if [[ -z $nome ]]; then
+    tput setaf 7; tput setab 1; tput bold; echo "Nome vazio ou invalido."; tput sgr0
+    exit 1
+fi
+
+# Verifica se o usuário já existe
+if grep -Fxq "$nome" /etc/passwd; then
+    tput setaf 7; tput setab 1; tput bold; echo "Este usuário já existe."; tput sgr0
+    exit 1
+fi
+
+# Solicita a senha
+echo -ne "\033[1;32mSenha\033[1;37m: "; read -s pass
 echo ""
-tput setaf 7 ; tput setab 1 ; tput bold ; echo "" ; echo "Nome vazio ou invalido." ; echo "" ; tput sgr0
-	exit 1
+if [[ -z $pass ]]; then
+    tput setaf 7; tput setab 1; tput bold; echo "Senha vazia ou invalida."; tput sgr0
+    exit 1
 fi
-awk -F : ' { print $1 }' /etc/passwd > /tmp/users 
-if grep -Fxq "$nome" /tmp/users
-then
-	tput setaf 7 ; tput setab 1 ; tput bold ; echo "" ; echo "Este usuário já existe." ; echo "" ; tput sgr0
-	exit 1
-fi
-echo -ne "\033[1;32mSenha\033[1;37m: "; read pass
-if [[ -z $pass ]]
-then
-echo ""
-tput setaf 7 ; tput setab 1 ; tput bold ; echo "" ; echo "Senha vazia ou invalida." ; echo "" ; tput sgr0
-	exit 1
-fi
+
+# Solicita o limite de conexões
 echo -ne "\033[1;32mLimite\033[1;37m: "; read limit
-if [[ -z $limit ]]
-then
-echo ""
-tput setaf 7 ; tput setab 1 ; tput bold ; echo "" ; echo "Limite vazio ou invalido." ; echo "" ; tput sgr0
-	exit 1
+if [[ -z $limit ]]; then
+    tput setaf 7; tput setab 1; tput bold; echo "Limite vazio ou invalido."; tput sgr0
+    exit 1
 fi
+
+# Solicita o tempo de validade
 echo -ne "\033[1;32mMinutos \033[1;33m(\033[1;31mEx: \033[1;37m60\033[1;33m)\033[1;37m: "; read u_temp
-if [[ -z $limit ]]
-then
-echo ""
-tput setaf 7 ; tput setab 1 ; tput bold ; echo "" ; echo "Limite vazio ou invalido." ; echo "" ; tput sgr0
-	exit 1
+if [[ -z $u_temp ]]; then
+    tput setaf 7; tput setab 1; tput bold; echo "Tempo inválido."; tput sgr0
+    exit 1
 fi
-useradd -M -s /bin/false $nome
-(echo $pass;echo $pass) |passwd $nome > /dev/null 2>&1
-echo "$pass" > /etc/SSHPlus/senha/$nome
+
+# Criação do usuário
+useradd -M -s /bin/false "$nome"
+if [ $? -ne 0 ]; then
+    tput setaf 7; tput setab 1; tput bold; echo "Erro ao criar o usuário."; tput sgr0
+    exit 1
+fi
+
+# Configura a senha do usuário
+echo -e "$pass\n$pass" | passwd "$nome" > /dev/null 2>&1
+
+# Armazena a senha em arquivo
+echo "$pass" > /etc/SSHPlus/senha/"$nome"
+
+# Registra o usuário na base de dados
 echo "$nome $limit" >> /root/usuarios.db
+
+# Cria o script de exclusão automática
 echo "#!/bin/bash
-pkill -f "$nome"
-userdel --force $nome
-grep -v ^$nome[[:space:]] /root/usuarios.db > /tmp/ph ; cat /tmp/ph > /root/usuarios.db
+pkill -f \"$nome\"
+userdel --force \"$nome\"
+grep -v ^$nome[[:space:]] /root/usuarios.db > /tmp/ph && mv /tmp/ph /root/usuarios.db
 rm /etc/SSHPlus/senha/$nome > /dev/null 2>&1
 rm -rf /etc/SSHPlus/userteste/$nome.sh
-exit" > /etc/SSHPlus/userteste/$nome.sh
-chmod +x /etc/SSHPlus/userteste/$nome.sh
-at -f /etc/SSHPlus/userteste/$nome.sh now + $u_temp min > /dev/null 2>&1
+exit" > /etc/SSHPlus/userteste/"$nome.sh"
+chmod +x /etc/SSHPlus/userteste/"$nome.sh"
+
+# Verifica se o at está ativo e agenda a exclusão do usuário
+if ! systemctl is-active --quiet atd; then
+    echo "Serviço 'atd' não está ativo. Ativando..."
+    systemctl start atd
+fi
+
+at -f /etc/SSHPlus/userteste/"$nome.sh" now + "$u_temp" min > /dev/null 2>&1
+
+# Exibe a confirmação
 clear
 echo -e "\E[44;1;37m     Usuario Teste Criado     \E[0m"
 echo ""
@@ -68,6 +109,6 @@ echo -e "\033[1;32mSenha:\033[1;37m $pass"
 echo -e "\033[1;32mLimite:\033[1;37m $limit"
 echo -e "\033[1;32mValidade:\033[1;37m $u_temp Minutos"
 echo ""
-echo -e "\033[1;33mApos o tempo definido o usuario"
-echo -e "\033[1;32m$nome \033[1;33msera desconectado e deletado.\033[0m"
+echo -e "\033[1;33mApós o tempo definido, o usuário"
+echo -e "\033[1;32m$nome \033[1;33mserá desconectado e deletado.\033[0m"
 exit
