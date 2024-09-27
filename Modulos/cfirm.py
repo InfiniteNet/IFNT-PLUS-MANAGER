@@ -26,7 +26,7 @@ _TEXTO_ = """\
 <html>
 <head></head>
 <body>
-<b><i>Ola! Crazy</i></b>
+<b><i>Ola! Alves</i></b>
 <br></b>
 <b><i>SEU SCRIPT FOI INSTALADO EM UM VPS<i></b>
 <br></br>
