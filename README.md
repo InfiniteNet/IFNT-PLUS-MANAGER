@@ -7,7 +7,7 @@ Este proyecto ha sido descontinuado y ya no recibirá actualizaciones o soporte 
 
 💡 Nota: Si tienes alguna pregunta o necesitas ayuda, te sugerimos revisar los foros comunitarios o consultar otros repositorios en GitHub que ofrezcan herramientas similares.
 
-![logo](https://github.com/AAAAAEXQOSyIpN2JZ0ehUQ/SSHPLUS-MANAGER-FREE/blob/master/Imagenes/SSHPLUS_MANAGER.png)
+![logo](https://github.com/InfiniteNet/IFNT-PLUS-MANAGER/blob/master/Imagenes/SSHPLUS_MANAGER.png)
 
 # SSHPlus Manager :octocat:
 
@@ -21,14 +21,14 @@ sus usuarios.
 ```bash
 apt-get update -y
 apt-get full-upgrade -y
-wget https://raw.githubusercontent.com/AAAAAEXQOSyIpN2JZ0ehUQ/SSHPLUS-MANAGER-FREE/master/Plus
+wget https://raw.githubusercontent.com/InfiniteNet/IFNT-PLUS-MANAGER/master/Plus
 chmod +x Plus*
 ./Plus
 ```
 
 ## :computer: Instalación en una Línea
 ```bash
-apt-get update -y; apt-get full-upgrade -y; wget https://raw.githubusercontent.com/AAAAAEXQOSyIpN2JZ0ehUQ/SSHPLUS-MANAGER-FREE/master/Plus; chmod +x Plus* && ./Plus
+apt-get update -y; apt-get full-upgrade -y; wget https://raw.githubusercontent.com/InfiniteNet/IFNT-PLUS-MANAGER/master/Plus; chmod +x Plus* && ./Plus
 ```
 
 :memo: Las dependencias faltantes se instalarán automáticamente durante el proceso.
@@ -67,22 +67,22 @@ SSHPLUS MANAGER ofrece las siguientes características:
 
 ## :books: Utilidades Opcionales
 
-- Reinstalar el Script: Ejecutar en consola el comando `sshplus` [Ver Imagen](https://github.com/AAAAAEXQOSyIpN2JZ0ehUQ/SSHPLUS-MANAGER-FREE/blob/master/Imagenes/Reinstall_SSHPlus-Manager.png)
-- Skin Menú Adaptado Formato ADM: Ejecutar en consola el comando `menuV3` [Ver Imagen](https://github.com/AAAAAEXQOSyIpN2JZ0ehUQ/SSHPLUS-MANAGER-FREE/blob/master/Imagenes/Update_menuV3.png)
-- Skin Menú Adaptado: Ejecutar en consola el comando `menuV2` [Ver Imagen](https://github.com/AAAAAEXQOSyIpN2JZ0ehUQ/SSHPLUS-MANAGER-FREE/blob/master/Imagenes/Update_menuV2.png)
-- Restablecer el Menú Original: Ejecutar en consola el comando `menuV1` [Ver Imagen](https://github.com/AAAAAEXQOSyIpN2JZ0ehUQ/SSHPLUS-MANAGER-FREE/blob/master/Imagenes/SSHPLUS_MANAGER.png)
+- Reinstalar el Script: Ejecutar en consola el comando `sshplus` [Ver Imagen](https://github.com/InfiniteNet/IFNT-PLUS-MANAGER/blob/master/Imagenes/Reinstall_SSHPlus-Manager.png)
+- Skin Menú Adaptado Formato ADM: Ejecutar en consola el comando `menuV3` [Ver Imagen](https://github.com/InfiniteNet/IFNT-PLUS-MANAGER/blob/master/Imagenes/Update_menuV3.png)
+- Skin Menú Adaptado: Ejecutar en consola el comando `menuV2` [Ver Imagen](https://github.com/InfiniteNet/IFNT-PLUS-MANAGER/blob/master/Imagenes/Update_menuV2.png)
+- Restablecer el Menú Original: Ejecutar en consola el comando `menuV1` [Ver Imagen](https://github.com/InfiniteNet/IFNT-PLUS-MANAGER/blob/master/Imagenes/SSHPLUS_MANAGER.png)
 
 ## :file_folder: Proyectos útiles 
 
-- Generador de Key SSHPLUS Manager: [Ver Repositorio](https://github.com/AAAAAEXQOSyIpN2JZ0ehUQ/SSHPLUS-MANAGER-FREE/tree/master/Install/Generador)
-- Script Oficial Panel Revenda SSH (Versión 20): [Ver Repositorio](https://github.com/AAAAAEXQOSyIpN2JZ0ehUQ/SSHPLUS-MANAGER-FREE/tree/master/Install/Panel_v20)
-- Multi-Instalador Plus: [Ver Repositorio](https://github.com/AAAAAEXQOSyIpN2JZ0ehUQ/SSHPLUS-MANAGER-FREE/tree/master/Install/Multi-Instalador)
-- Panel Revenda SSH (Versiones): [Ver Repositorio](https://github.com/AAAAAEXQOSyIpN2JZ0ehUQ/SSHPLUS-MANAGER-FREE/tree/master/Install/Panel_Web)
-- Tcp-Tweaker-1.0 (Tcp-Speed): [Ver Repositorio](https://github.com/AAAAAEXQOSyIpN2JZ0ehUQ/SSHPLUS-MANAGER-FREE/tree/master/Install/TCP-Speed)
+- Generador de Key SSHPLUS Manager: [Ver Repositorio](https://github.com/InfiniteNet/IFNT-PLUS-MANAGER/tree/master/Install/Generador)
+- Script Oficial Panel Revenda SSH (Versión 20): [Ver Repositorio](https://github.com/InfiniteNet/IFNT-PLUS-MANAGER/tree/master/Install/Panel_v20)
+- Multi-Instalador Plus: [Ver Repositorio](https://github.com/InfiniteNet/IFNT-PLUS-MANAGER/tree/master/Install/Multi-Instalador)
+- Panel Revenda SSH (Versiones): [Ver Repositorio](https://github.com/InfiniteNet/IFNT-PLUS-MANAGER/tree/master/Install/Panel_Web)
+- Tcp-Tweaker-1.0 (Tcp-Speed): [Ver Repositorio](https://github.com/InfiniteNet/IFNT-PLUS-MANAGER/tree/master/Install/TCP-Speed)
 
 ## :inbox_tray: Descarga del Código Fuente
 
-- Código Fuente: [Descargar](https://raw.githubusercontent.com/AAAAAEXQOSyIpN2JZ0ehUQ/SSHPLUS-MANAGER-FREE/master/Install/Source-Code-SSHPlus.zip)
+- Código Fuente: [Descargar](https://raw.githubusercontent.com/InfiniteNet/IFNT-PLUS-MANAGER/master/Install/Source-Code-SSHPlus.zip)
 
 ## :open_file_folder: Estructura del Repositorio
 
