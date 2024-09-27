@@ -1,38 +1,82 @@
 #!/bin/bash
 clear
+
+# Variável para a operação
 op=$1
-[[ ! -d /usr/share/.plus ]] && exit 0
+
+# Verifica se o diretório "/usr/share/.plus" existe
+[[ ! -d /usr/share/.plus ]] && {
+  echo "Diretório /usr/share/.plus não encontrado. Saindo..."
+  exit 0
+}
+
+# Função para remoção do Squid e reinstalação
 fun_sqd01() {
-[[ -e /etc/apt/sources.list.d/trusty_sources.list ]] && {
-rm /etc/apt/sources.list.d/trusty_sources.list >/dev/null 2>&1
-[[ $(grep -wc 'Debian' /etc/issue.net) != '0' ]] && {
-apt-key del 3B4FE6ACC0B21F32 >/dev/null 2>&1
+  # Remove repositórios do Ubuntu Trusty se existirem
+  [[ -e /etc/apt/sources.list.d/trusty_sources.list ]] && {
+    rm /etc/apt/sources.list.d/trusty_sources.list >/dev/null 2>&1
+    echo "Repositório Trusty removido."
+    
+    # Se for Debian, remove chave do Ubuntu
+    [[ $(grep -wc 'Debian' /etc/issue.net) != '0' ]] && {
+      apt-key del 3B4FE6ACC0B21F32 >/dev/null 2>&1
+      echo "Chave Ubuntu removida do Debian."
+    }
+
+    # Remove versões antigas do Squid
+    apt remove squid3=3.3.8-1ubuntu6 squid=3.3.8-1ubuntu6 squid3-common=3.3.8-1ubuntu6 -y >/dev/null 2>&1
+    apt update -y >/dev/null 2>&1
+    apt autoremove -y >/dev/null 2>&1
+    echo "Versões antigas do Squid removidas."
+  }
+
+  # Instala o Squid3
+  apt install squid3 -y >/dev/null 2>&1 && {
+    echo "Squid3 instalado com sucesso."
+  } || {
+    echo "Falha ao instalar Squid3."
+  }
 }
-apt remove squid3=3.3.8-1ubuntu6 squid=3.3.8-1ubuntu6 squid3-common=3.3.8-1ubuntu6 -y >/dev/null 2>&1
-apt update -y >/dev/null 2>&1
-apt autoremove -y >/dev/null 2>&1
-}
-apt install squid3 -y >/dev/null 2>&1
-}
+
+# Função para adicionar repositório Trusty e instalar versão específica do Squid
 fun_sqd02() {
-[[ ! -e /etc/apt/sources.list.d/trusty_sources.list ]] && {
-touch /etc/apt/sources.list.d/trusty_sources.list >/dev/null 2>&1
-echo "deb http://us.archive.ubuntu.com/ubuntu/ trusty main universe" | tee --append /etc/apt/sources.list.d/trusty_sources.list >/dev/null 2>&1
+  # Adiciona repositório do Ubuntu Trusty se não existir
+  [[ ! -e /etc/apt/sources.list.d/trusty_sources.list ]] && {
+    touch /etc/apt/sources.list.d/trusty_sources.list >/dev/null 2>&1
+    echo "deb http://us.archive.ubuntu.com/ubuntu/ trusty main universe" | tee --append /etc/apt/sources.list.d/trusty_sources.list >/dev/null 2>&1
+    echo "Repositório Trusty adicionado."
+  }
+
+  # Verifica se é Debian e instala chave do Ubuntu, se necessário
+  [[ $(grep -wc 'Debian' /etc/issue.net) != '0' ]] && {
+    apt install dirmngr -y >/dev/null 2>&1
+    [[ $(apt-key list 2>/dev/null | grep -c 'Ubuntu') == '0' ]] && {
+      apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 3B4FE6ACC0B21F32 >/dev/null 2>&1
+      echo "Chave do Ubuntu adicionada ao Debian."
+    }
+  }
+
+  # Atualiza e instala a versão específica do Squid3
+  apt update -y >/dev/null 2>&1
+  apt install squid3=3.3.8-1ubuntu6 squid=3.3.8-1ubuntu6 squid3-common=3.3.8-1ubuntu6 -y >/dev/null 2>&1 && {
+    echo "Squid3 versão 3.3.8-1ubuntu6 instalado com sucesso."
+  } || {
+    echo "Falha ao instalar versão específica do Squid3."
+  }
+
+  # Baixa e configura o script de inicialização do Squid3
+  wget -qO- https://raw.githubusercontent.com/CRAZY-VPN/SQUID3/master/squid3 >/etc/init.d/squid3 && {
+    chmod +x /etc/init.d/squid3 >/dev/null 2>&1
+    update-rc.d squid3 defaults >/dev/null 2>&1
+    echo "Script de inicialização do Squid3 configurado."
+  } || {
+    echo "Falha ao configurar script de inicialização do Squid3."
+  }
 }
-[[ $(grep -wc 'Debian' /etc/issue.net) != '0' ]] && {
-apt install dirmngr -y >/dev/null 2>&1
-[[ $(apt-key list 2>/dev/null | grep -c 'Ubuntu') == '0' ]] && {
-apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 3B4FE6ACC0B21F32 >/dev/null 2>&1
-}
-}
-apt update -y >/dev/null 2>&1
-apt install squid3=3.3.8-1ubuntu6 squid=3.3.8-1ubuntu6 squid3-common=3.3.8-1ubuntu6 -y >/dev/null 2>&1
-wget -qO- https://raw.githubusercontent.com/CRAZY-VPN/SQUID3/master/squid3 >/etc/init.d/squid3
-chmod +x /etc/init.d/squid3 >/dev/null 2>&1
-update-rc.d squid3 defaults >/dev/null 2>&1
-}
+
+# Verifica o valor da variável 'op' e chama a função apropriada
 [[ $op == '1' ]] && {
-fun_sqd02
+  fun_sqd02
 } || {
-fun_sqd01
+  fun_sqd01
 }
