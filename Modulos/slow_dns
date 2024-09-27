@@ -1,8 +1,8 @@
 #!/bin/bash
 clear
 #——————————————————
-# CRIADOR POR @ALVES_S.A
-# VERSAO 1.3
+# CRIADO POR @ALVES_S.A
+# VERSÃO 1.3
 # SLOW DNS TUNNEL
 #——————————————————
 RED='\033[1;31m'
@@ -13,152 +13,177 @@ CORTITLE='\033[1;41m'
 DIR='/etc/SSHPlus/dns'
 SCOLOR='\033[0m'
 
+# Função para configurar o DNS
 configdns() {
     interface=$(ip a | awk '/state UP/{print $2}' | cut -d: -f1)
     iptables -F >/dev/null 2>&1
     iptables -I INPUT -p udp --dport 5300 -j ACCEPT
-    iptables -t nat -I PREROUTING -i $interface -p udp --dport 53 -j REDIRECT --to-ports 5300
+    iptables -t nat -I PREROUTING -i "$interface" -p udp --dport 53 -j REDIRECT --to-ports 5300
     ip6tables -I INPUT -p udp --dport 5300 -j ACCEPT
-    ip6tables -t nat -I PREROUTING -i $interface -p udp --dport 53 -j REDIRECT --to-ports 5300
+    ip6tables -t nat -I PREROUTING -i "$interface" -p udp --dport 53 -j REDIRECT --to-ports 5300
 }
 
-echo -e "${CORTITLE}           SSHPLUS SLOWDNS (Beta)            ${SCOLOR}"
+# Função para instalar o SlowDNS
 installslowdns() {
-    echo -e "\n${YELLOW}ESTEJA CIENTE QUE ESSE METODO AINDA\nESTA NA FASE BETA E QUE ALEM DE SER\nLENTO PODE NAO FUNCIONAR PERFEITAMENTE ! ${SCOLOR}\n"
-    echo -ne "${GREEN}DESEJA CONTINUAR A INSTALACAO ? ${YELLOW}[s/n]:${SCOLOR} "
-    read resp
+    echo -e "\n${YELLOW}Este método ainda está em fase BETA e pode não funcionar perfeitamente!${SCOLOR}"
+    echo -ne "${GREEN}Deseja continuar com a instalação? ${YELLOW}[s/n]:${SCOLOR} "
+    read -r resp
     [[ "$resp" != @(s|sim|S|SIM) ]] && {
         echo -e "\n${RED}Retornando...${SCOLOR}"
         sleep 2
         conexao
     }
-    mkdir /etc/SSHPlus/dns >/dev/null 2>&1
-    wget -P $DIR sshplus.net/scripts/slow-dns/dns-server >/dev/null 2>&1
-    chmod 777 $DIR/dns-server >/dev/null 2>&1
-    $DIR/dns-server -gen-key -privkey-file $DIR/server.key -pubkey-file $DIR/server.pub >/dev/null 2>&1
+
+    mkdir -p /etc/SSHPlus/dns >/dev/null 2>&1
+    wget -P "$DIR" sshplus.net/scripts/slow-dns/dns-server >/dev/null 2>&1
+    chmod 777 "$DIR/dns-server" >/dev/null 2>&1
+    "$DIR/dns-server" -gen-key -privkey-file "$DIR/server.key" -pubkey-file "$DIR/server.pub" >/dev/null 2>&1
     configdns >/dev/null 2>&1
     cat /dev/null >~/.bash_history && history -c
 }
+
+# Função para iniciar SlowDNS
 initslow() {
-    [[ $(ss -lu | grep -wc '5300') != '0' ]] && {
-        echo -e "\n${RED}[${CYAN}1${RED}] ${YELLOW}PARAR O SLOWDNS${SCOLOR}"
-        echo -e "${RED}[${CYAN}2${RED}] ${YELLOW}REMOVER O SLOWDNS${SCOLOR}"
-        echo -e "${RED}[${CYAN}3${RED}] ${YELLOW}EXIBIR INFORMACOES${SCOLOR}"
-        echo -e "${RED}[${CYAN}0${RED}] ${YELLOW}VOLTAR${SCOLOR}"
-        echo -ne "\n${GREEN}INFORME UMA OPCAO${SCOLOR}: "
-        read op
-        if [[ "$op" == '1' ]]; then
+    if [[ $(ss -lu | grep -wc '5300') != '0' ]]; then
+        echo -e "\n${RED}[${CYAN}1${RED}] ${YELLOW}Parar o SlowDNS${SCOLOR}"
+        echo -e "${RED}[${CYAN}2${RED}] ${YELLOW}Remover o SlowDNS${SCOLOR}"
+        echo -e "${RED}[${CYAN}3${RED}] ${YELLOW}Exibir informações${SCOLOR}"
+        echo -e "${RED}[${CYAN}0${RED}] ${YELLOW}Voltar${SCOLOR}"
+        echo -ne "\n${GREEN}Informe uma opção${SCOLOR}: "
+        read -r op
+
+        case "$op" in
+        1)
             screen -r -S "slow_dns" -X quit >/dev/null 2>&1
             screen -wipe >/dev/null 2>&1
             sed -i '/5300/d' /etc/autostart >/dev/null 2>&1
             sed -i '/slow_dns/d' /etc/SSHPlus/dns/autodns >/dev/null 2>&1
-            echo -e "\n${RED}SLOWDNS DESATIVADO !${SCOLOR}"
+            echo -e "\n${RED}SlowDNS desativado!${SCOLOR}"
             sleep 2
             conexao
-        elif [[ "$op" == '2' ]]; then
+            ;;
+        2)
             screen -r -S "slow_dns" -X quit >/dev/null 2>&1
             screen -wipe >/dev/null 2>&1
             sed -i '/5300/d' /etc/autostart >/dev/null 2>&1
             rm -rf /etc/SSHPlus/dns >/dev/null 2>&1
-            echo -e "\n${RED}SLOWDNS REMOVIDO !${SCOLOR}"
+            echo -e "\n${RED}SlowDNS removido!${SCOLOR}"
             sleep 2
             conexao
-        elif [[ "$op" == '3' ]]; then
-            [[ -e $DIR/server.pub ]] && keypub=$(cat $DIR/server.pub) || keypub='Null'
-            [[ -e $DIR/autodns ]] && nameserver=$(grep -w 'server.key' /etc/SSHPlus/dns/autodns | awk -F' ' '{print $9}') || nameserver='Null'
+            ;;
+        3)
+            keypub=$(cat "$DIR/server.pub" 2>/dev/null || echo 'Null')
+            nameserver=$(grep -w 'server.key' /etc/SSHPlus/dns/autodns | awk -F' ' '{print $9}' 2>/dev/null || echo 'Null')
             tmx='curl -sO https://sshplus.net/scripts/slowdns && chmod +x slowdns && ./slowdns'
             clear
             echo -e "${CORTITLE}           SSHPLUS SLOWDNS (Beta)            ${SCOLOR}"
-            echo -e "\n${YELLOW}NAMESERVER(NS)${SCOLOR}: $nameserver"
-            echo -e "${YELLOW}CHAVE PUBLICA${SCOLOR}: $keypub"
-            echo -e "\n${GREEN}COMANDO TERMUX${SCOLOR}: ${tmx} ${nameserver} ${keypub}"
-            echo -ne "\n${RED}ENTER${YELLOW} para retornar ao${GREEN} MENU!${SCOLOR}"
-            read
+            echo -e "\n${YELLOW}Nameserver(NS):${SCOLOR} $nameserver"
+            echo -e "${YELLOW}Chave Pública:${SCOLOR} $keypub"
+            echo -e "\n${GREEN}Comando Termux:${SCOLOR} ${tmx} ${nameserver} ${keypub}"
+            echo -ne "\n${RED}Pressione ENTER para retornar ao menu!${SCOLOR}"
+            read -r
             conexao
-        elif [[ "$op" == '0' ]]; then
+            ;;
+        0)
             sleep 1
             conexao
-        else
-            echo -e "\n${RED}OPCAO INVALIDA${SCOLOR}"
+            ;;
+        *)
+            echo -e "\n${RED}Opção inválida!${SCOLOR}"
             sleep 1.5
             conexao
-        fi
-    } || {
+            ;;
+        esac
+    else
+        # Se SlowDNS não estiver ativo
         clear
         echo -e "${CORTITLE}           SSHPLUS SLOWDNS (Beta)            ${SCOLOR}"
-        echo -ne "\n${GREEN}INFORME O DOMINIO NS${SCOLOR}: "
-        read ns
+        echo -ne "\n${GREEN}Informe o domínio NS:${SCOLOR} "
+        read -r ns
+
         [[ -z "$ns" ]] && {
-            echo -e "\n${RED}DOMINIO INVALIDO${SCOLOR}"
+            echo -e "\n${RED}Domínio inválido!${SCOLOR}"
             sleep 1.5
             initslow
         }
-        echo -e "\n${RED}[${CYAN}1${RED}] ${YELLOW}SLOWDNS SSH${SCOLOR}"
-        echo -e "${RED}[${CYAN}2${RED}] ${YELLOW}SLOWDNS SSL${SCOLOR}"
-        echo -e "${RED}[${CYAN}3${RED}] ${YELLOW}SLOWDNS SSLH${SCOLOR}"
-        echo -e "${RED}[${CYAN}4${RED}] ${YELLOW}SLOWDNS OPENVPN${SCOLOR}"
-        echo -e "${RED}[${CYAN}0${RED}] ${YELLOW}VOLTAR${SCOLOR}"
-        echo -ne "\n${GREEN}INFORME UMA OPCAO${SCOLOR}: "
-        read opcc
-        if [[ "$opcc" == '1' ]]; then
+
+        echo -e "\n${RED}[${CYAN}1${RED}] ${YELLOW}SlowDNS SSH${SCOLOR}"
+        echo -e "${RED}[${CYAN}2${RED}] ${YELLOW}SlowDNS SSL${SCOLOR}"
+        echo -e "${RED}[${CYAN}3${RED}] ${YELLOW}SlowDNS SSLH${SCOLOR}"
+        echo -e "${RED}[${CYAN}4${RED}] ${YELLOW}SlowDNS OpenVPN${SCOLOR}"
+        echo -e "${RED}[${CYAN}0${RED}] ${YELLOW}Voltar${SCOLOR}"
+        echo -ne "\n${GREEN}Informe uma opção:${SCOLOR} "
+        read -r opcc
+
+        case "$opcc" in
+        1)
             ptdns='22'
-        elif [[ "$opcc" == '2' ]]; then
-            ptdns=$(netstat -nplt | grep 'stunnel' | awk {'print $4'} | cut -d: -f2)
-            [[ $ptdns == '' ]] && {
-                echo -e "\n${RED}PRIMEIRO INSTALE O SSL TUNNEL !${SCOLOR}"
+            ;;
+        2)
+            ptdns=$(netstat -nplt | grep 'stunnel' | awk '{print $4}' | cut -d: -f2)
+            [[ -z $ptdns ]] && {
+                echo -e "\n${RED}Instale o SSL Tunnel primeiro!${SCOLOR}"
                 sleep 1.5
                 initslow
             }
-        elif [[ "$opcc" == '3' ]]; then
-            ptdns=$(netstat -nplt | grep 'sslh' | awk {'print $4'} | cut -d: -f2)
-            [[ $ptdns == '' ]] && {
-                echo -e "\n${RED}PRIMEIRO INSTALE O SSLH !${SCOLOR}"
+            ;;
+        3)
+            ptdns=$(netstat -nplt | grep 'sslh' | awk '{print $4}' | cut -d: -f2)
+            [[ -z $ptdns ]] && {
+                echo -e "\n${RED}Instale o SSLH primeiro!${SCOLOR}"
                 sleep 1.5
                 initslow
             }
-        elif [[ "$opcc" == '4' ]]; then
+            ;;
+        4)
             [[ ! -e /etc/openvpn/server.conf ]] && {
-                echo -e "\n${RED}PRIMEIRO INSTALE O OPENVPN !${SCOLOR}"
+                echo -e "\n${RED}Instale o OpenVPN primeiro!${SCOLOR}"
                 sleep 1.5
                 initslow
             } || {
-                ptdns=$(sed -n 1p /etc/openvpn/server.conf| cut -d' ' -f2)
+                ptdns=$(sed -n 1p /etc/openvpn/server.conf | cut -d' ' -f2)
             }
-        elif [[ "$opcc" == '0' ]]; then
+            ;;
+        0)
             sleep 1.5
             conexao
-        else
-            echo -e "\n${RED}OPCAO INVALIDA${SCOLOR}"
+            ;;
+        *)
+            echo -e "\n${RED}Opção inválida!${SCOLOR}"
             sleep 1.5
             initslow
-        fi
-        screen -dmS slow_dns $DIR/dns-server -udp :5300 -privkey-file $DIR/server.key ${ns} 0.0.0.0:${ptdns} >/dev/null 2>&1
-        keypub=$(cat $DIR/server.pub)
-        cd $HOME
-        echo -e "\n${YELLOW}ATIVADO O SLOWDNS...${SCOLOR}"
-        [[ ! -e /etc/iptables/rules.v4 ]] && {
-            configdns > /dev/null 2>&1
+            ;;
+        esac
+
+        # Ativando o SlowDNS
+        screen -dmS slow_dns "$DIR/dns-server" -udp :5300 -privkey-file "$DIR/server.key" "${ns}" 0.0.0.0:"${ptdns}" >/dev/null 2>&1
+        keypub=$(cat "$DIR/server.pub")
+        echo -e "\n${YELLOW}SlowDNS ativado...${SCOLOR}"
+
+        # Configurando iptables e persistência
+        if [[ ! -e /etc/iptables/rules.v4 ]]; then
+            configdns >/dev/null 2>&1
             DEBIAN_FRONTEND=noninteractive apt install -y iptables-persistent >/dev/null 2>&1
-        } || {
-            sleep 2
-            configdns > /dev/null 2>&1
+        else
+            configdns >/dev/null 2>&1
             iptables-save > /etc/iptables/rules.v4
-        }
+        fi
+
+        # Salvando configuração de inicialização
         echo "screen -dmS slow_dns $DIR/dns-server -udp :5300 -privkey-file $DIR/server.key ${ns} 0.0.0.0:${ptdns}" >/etc/SSHPlus/dns/autodns
         chmod 777 /etc/SSHPlus/dns/autodns >/dev/null 2>&1
-        echo "ss -lu|grep -w '5300' || /etc/SSHPlus/dns/autodns" >>/etc/autostart
+        echo "ss -lu | grep -w '5300' || /etc/SSHPlus/dns/autodns" >>/etc/autostart
+
         tmx='curl -sO https://sshplus.net/scripts/slowdns && chmod +x slowdns && ./slowdns'
-        echo -e "\n${GREEN}SLOWDNS ATIVADO !${SCOLOR}"
-        echo -e "\n${YELLOW}COMANDO TERMUX${SCOLOR}: ${tmx} ${ns} ${keypub}"
-        echo -ne "\n${RED}ENTER${YELLOW} para retornar ao${GREEN} MENU!${SCOLOR}"
-        read
+        echo -e "\n${GREEN}SlowDNS ativado!${SCOLOR}"
+        echo -e "\n${YELLOW}Comando Termux:${SCOLOR} ${tmx} ${ns} ${keypub}"
+        echo -ne "\n${RED}Pressione ENTER para retornar ao menu!${SCOLOR}"
+        read -r
         conexao
-    }
+    fi
 }
-[[ -d $DIR ]] && {
-    initslow
-} || {
-    installslowdns
-    sleep 0.5
-    initslow
-}
+
+# Inicializando SlowDNS ou instalando se não estiver disponível
+[[ -d $DIR ]] && initslow || installslowdns
+sleep 0.5
+initslow
