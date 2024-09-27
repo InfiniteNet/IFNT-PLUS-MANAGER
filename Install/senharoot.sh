@@ -1,5 +1,5 @@
 #!/bin/bash
-# By crazy_vpn
+# By alves_s.a
 # Pequeno script para permissao de autenticacao root
 clear
 [[ "$(whoami)" != "root" ]] && {
