@@ -5,7 +5,10 @@ ServerKeyBits 1024
 SyslogFacility AUTH
 LogLevel INFO
 LoginGraceTime 120
-PermitRootLogin yes
+
+# Segurança para login root (melhor prática: use 'no' ou 'prohibit-password')
+PermitRootLogin prohibit-password
+
 StrictModes yes
 RSAAuthentication yes
 PubkeyAuthentication yes
@@ -15,13 +18,27 @@ HostbasedAuthentication no
 PermitEmptyPasswords no
 PermitTunnel yes
 ChallengeResponseAuthentication no
-PasswordAuthentication yes
-X11Forwarding yes
+
+# Melhor prática: desative autenticação por senha se possível
+PasswordAuthentication no
+
+X11Forwarding no
 X11DisplayOffset 10
 PrintMotd no
 PrintLastLog yes
 TCPKeepAlive yes
+
+# Desativar o uso de login antigo
 #UseLogin no
+
+# Variáveis de ambiente aceitas
 AcceptEnv LANG LC_*
+
 Subsystem sftp /usr/lib/openssh/sftp-server
+
+# Use PAM para autenticação adicional
 UsePAM yes
+
+# Melhorar a segurança e evitar sessões SSH inativas por muito tempo
+ClientAliveInterval 300
+ClientAliveCountMax 2
