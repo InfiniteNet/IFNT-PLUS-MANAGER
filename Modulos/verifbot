@@ -1,47 +1,66 @@
 #!/bin/bash
+
+# Verifica se as pastas necessárias existem
 [[ ! -d /etc/SSHPlus ]] && exit 0
 [[ ! -d /etc/bot/revenda ]] && exit 0
-[[ "$(ls /etc/bot/revenda| wc -l)" == '0' ]] && exit 0
+[[ "$(ls /etc/bot/revenda | wc -l)" == '0' ]] && exit 0
+
+# Processa cada arquivo de revenda
 for arq in $(ls /etc/bot/revenda); do
+	# Obtém os dias restantes da revenda
 	_diasR=$(grep -w 'DIAS_REVENDA' /etc/bot/revenda/$arq/$arq | awk '{print $NF}')
-	[[ "$_diasR" -eq '0' ]] && {
-		[[ "$(grep -wc 'SUBREVENDA' /etc/bot/revenda/$arq/$arq)" != '0' ]] && {
+	
+	# Se os dias restantes forem 0, suspender a revenda
+	if [[ "$_diasR" -eq '0' ]]; then
+		
+		# Verifica se há subrevendas
+		if [[ "$(grep -wc 'SUBREVENDA' /etc/bot/revenda/$arq/$arq)" != '0' ]]; then
 			while read _listsub3; do
 				_usub3="$(echo $_listsub3 | awk '{print $2}')"
 				_dir_users="/etc/bot/revenda/$_usub3/usuarios"
-				[[ "$(ls $_dir_users | wc -l)" != '0' ]] && {
+				
+				# Se existirem usuários na subrevenda, suspender cada um deles
+				if [[ "$(ls $_dir_users | wc -l)" != '0' ]]; then
 					for _user in $(ls $_dir_users); do
-						usermod -L $_user
-						pkill -U $_user
+						usermod -L $_user 2>/dev/null || echo "Falha ao bloquear o usuário $_user"
+						pkill -U $_user 2>/dev/null || echo "Falha ao matar processos do usuário $_user"
 					done
-				}
-				[[ $(grep -wc $_usub3 /etc/bot/lista_suspensos) == '0' ]] && {
-					[[ ! -z $_usub3 ]] && {
-						echo $_usub3 suspenso
+				fi
+				
+				# Suspende a subrevenda
+				if [[ $(grep -wc $_usub3 /etc/bot/lista_suspensos) == '0' ]]; then
+					if [[ ! -z $_usub3 ]]; then
+						echo "$_usub3 suspenso"
 						mv /etc/bot/revenda/$_usub3 /etc/bot/suspensos/$_usub3
-						grep -w "$_usub3" /etc/bot/lista_ativos >>/etc/bot/lista_suspensos
-					}
-				}
-			done <<<"$(grep -w 'SUBREVENDA' /etc/bot/revenda/$arq/$arq)"
-		}
-		[[ "$(ls /etc/bot/revenda/$arq/usuarios | wc -l)" != '0' ]] && {
+						grep -w "$_usub3" /etc/bot/lista_ativos >> /etc/bot/lista_suspensos
+					fi
+				fi
+			done <<< "$(grep -w 'SUBREVENDA' /etc/bot/revenda/$arq/$arq)"
+		fi
+		
+		# Suspende os usuários diretamente vinculados à revenda
+		if [[ "$(ls /etc/bot/revenda/$arq/usuarios | wc -l)" != '0' ]]; then
 			for _user in $(ls /etc/bot/revenda/$arq/usuarios); do
-				usermod -L $_user
-				pkill -U $_user
+				usermod -L $_user 2>/dev/null || echo "Falha ao bloquear o usuário $_user"
+				pkill -U $_user 2>/dev/null || echo "Falha ao matar processos do usuário $_user"
 			done
-		}
-		[[ $(grep -wc $arq /etc/bot/lista_suspensos) == '0' ]] && {
-			[[ ! -z $arq ]] && {
-				echo $arq suspenso
+		fi
+		
+		# Suspende a própria revenda
+		if [[ $(grep -wc $arq /etc/bot/lista_suspensos) == '0' ]]; then
+			if [[ ! -z $arq ]]; then
+				echo "$arq suspenso"
 				mv /etc/bot/revenda/$arq /etc/bot/suspensos/$arq
-				grep -w "$arq" /etc/bot/lista_ativos >>/etc/bot/lista_suspensos
-			}
-		}
-		echo "$arq ~ $_diasR"
-	} || {
+				grep -w "$arq" /etc/bot/lista_ativos >> /etc/bot/lista_suspensos
+			fi
+		fi
+		
+		echo "$arq ~ $_diasR suspenso"
+	else
+		# Reduz o número de dias restantes
 		_days=$(($_diasR - 1))
 		sed -i "/\b$arq\b/ s/DIAS: $_diasR/DIAS: $_days/" /etc/bot/lista_ativos
 		sed -i "/DIAS_REVENDA/ s/$_diasR/$_days/" /etc/bot/revenda/$arq/$arq
-		echo $arq $_diasR DIAS ALTERADO PARA $_days
-	}
+		echo "$arq $_diasR dias alterado para $_days"
+	fi
 done
