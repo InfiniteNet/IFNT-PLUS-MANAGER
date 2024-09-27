@@ -6,34 +6,56 @@
 #	CANAL TELEGRAM:	http://t.me/sshplus
 #====================================================
 clear
+
+# Caminho para o banco de dados de usuários e limites
 database="/root/usuarios.db"
+
+# Função para verificar e limitar conexões
 fun_multilogin() {
-	(
-		while read user; do
-			[[ $(grep -wc "$user" $database) != '0' ]] && limit="$(grep -w $user $database | cut -d' ' -f2)" || limit='1'
-			conssh="$(ps -u $user | grep sshd | wc -l)"
-			[[ "$conssh" -gt "$limit" ]] && {
-				pkill -u $user
-			}
-			[[ -e /etc/openvpn/openvpn-status.log ]] && {
-				ovp="$(grep -E ,"$user", /etc/openvpn/openvpn-status.log | wc -l)"
-				[[ "$ovp" -gt "$limit" ]] && {
-					pidokill=$(($limit - $ovp))
-					listpid=$(grep -E ,"$user", /etc/openvpn/openvpn-status.log | cut -d "," -f3 | head -n $pidokill)
-					while read ovpids; do
-						(
-							telnet localhost 7505 <<-EOF
-								kill $ovpids
-							EOF
-						) &>/dev/null &
-					done <<<"$listpid"
-				}
-			}
-		done <<<"$(awk -F: '$3 >= 1000 {print $1}' /etc/passwd)"
-	) &
+    # Verifica se o arquivo de banco de dados existe
+    if [[ ! -f "$database" ]]; then
+        echo "Arquivo $database não encontrado!"
+        exit 1
+    fi
+
+    # Processa os usuários com UID >= 1000 (usuários normais)
+    while read -r user; do
+        # Verifica o limite no banco de dados
+        if [[ $(grep -wc "$user" $database) != '0' ]]; then
+            limit=$(grep -w "$user" $database | cut -d' ' -f2)
+        else
+            limit=1  # Limite padrão de 1 conexão se não estiver no banco de dados
+        fi
+
+        # Verifica sessões SSH ativas
+        conssh=$(ps -u "$user" | grep sshd | wc -l)
+        if [[ "$conssh" -gt "$limit" ]]; then
+            echo "Usuário $user excedeu o limite SSH ($conssh/$limit). Encerrando sessões..."
+            pkill -u "$user"
+        fi
+
+        # Verifica sessões OpenVPN ativas
+        if [[ -e /etc/openvpn/openvpn-status.log ]]; then
+            ovp=$(grep -E ,"$user", /etc/openvpn/openvpn-status.log | wc -l)
+            if [[ "$ovp" -gt "$limit" ]]; then
+                echo "Usuário $user excedeu o limite OpenVPN ($ovp/$limit). Encerrando sessões..."
+                pidokill=$((limit - ovp))
+                listpid=$(grep -E ,"$user", /etc/openvpn/openvpn-status.log | cut -d "," -f3 | head -n $pidokill)
+                while read -r ovpids; do
+                    (
+                        telnet localhost 7505 <<-EOF
+                        kill $ovpids
+                        EOF
+                    ) &>/dev/null
+                done <<< "$listpid"
+            fi
+        fi
+    done <<< "$(awk -F: '$3 >= 1000 {print $1}' /etc/passwd)"
 }
+
+# Loop infinito para verificar e limitar conexões a cada 15 segundos
 while true; do
-    echo 'verificando...'
-	fun_multilogin > /dev/null 2>&1
-	sleep 15s
+    echo 'Verificando sessões...'
+    fun_multilogin > /dev/null 2>&1
+    sleep 15s
 done
