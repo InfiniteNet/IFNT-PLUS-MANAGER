@@ -7,6 +7,7 @@
 #====================================================
 clear
 [[ $(awk -F" " '{print $2}' /usr/lib/licence) != "@ALVES_S.A" ]] && exit 0
+
 fun_bar() {
     comando[0]="$1"
     comando[1]="$2"
@@ -35,7 +36,13 @@ fun_bar() {
 }
 
 fun_botOnOff() {
-    [[ $(ps x | grep "bot_plus" | grep -v grep | wc -l) = '0' ]] && {
+    # Verificar se screen está instalado
+    if ! command -v screen &> /dev/null; then
+        echo "Instalando dependências..."
+        apt-get update -y && apt-get install screen -y
+    fi
+
+    if [[ $(ps x | grep "bot_plus" | grep -v grep | wc -l) = '0' ]]; then
         clear
         echo -e "\E[44;1;37m             INSTALADOR BOT SSHPLUS                \E[0m\n"
         echo -ne "\033[1;32mINFORME SEU TOKEN:\033[1;37m "
@@ -45,45 +52,64 @@ fun_botOnOff() {
         read iduser
         clear
         echo -e "\033[1;32mINICIANDO BOT SSHPLUS \033[0m\n"
+
+        # Função para baixar e configurar o bot
         fun_bot1() {
-            [[ ! -e "/etc/SSHPlus/ShellBot.sh" ]] && {
-				wget -qO- https://raw.githubusercontent.com/shellscriptx/shellbot/master/ShellBot.sh >/etc/SSHPlus/ShellBot.sh
-			}
+            if [[ ! -e "/etc/SSHPlus/ShellBot.sh" ]]; then
+                wget -qO- https://raw.githubusercontent.com/shellscriptx/shellbot/master/ShellBot.sh >/etc/SSHPlus/ShellBot.sh
+            fi
             cd /etc/SSHPlus
             screen -dmS bot_plus ./bot $tokenbot $iduser >/dev/null 2>&1
-            [[ $(grep -wc "bot_plus" /etc/autostart) = '0' ]] && {
-                echo -e "ps x | grep 'bot_plus' | grep -v 'grep' || cd /etc/SSHPlus && screen -dmS bot_plus ./bot $tokenbot $iduser && cd $HOME" >>/etc/autostart
-            } || {
+
+            # Adicionar ao autostart
+            if [[ $(grep -wc "bot_plus" /etc/autostart) = '0' ]]; then
+                echo "ps x | grep 'bot_plus' | grep -v 'grep' || cd /etc/SSHPlus && screen -dmS bot_plus ./bot $tokenbot $iduser && cd $HOME" >>/etc/autostart
+            else
                 sed -i '/bot_plus/d' /etc/autostart
-                echo -e "ps x | grep 'bot_plus' | grep -v 'grep' || cd /etc/SSHPlus && screen -dmS bot_plus ./bot $tokenbot $iduser && cd $HOME" >>/etc/autostart
-            }
-            [[ $(crontab -l | grep -c "verifbot") = '0' ]] && (
-                crontab -l 2>/dev/null
-                echo "@daily /bin/verifbot"
-            ) | crontab -
+                echo "ps x | grep 'bot_plus' | grep -v 'grep' || cd /etc/SSHPlus && screen -dmS bot_plus ./bot $tokenbot $iduser && cd $HOME" >>/etc/autostart
+            fi
+
+            # Adicionar verificação diária via cron
+            if [[ $(crontab -l | grep -c "verifbot") = '0' ]]; then
+                (crontab -l 2>/dev/null; echo "@daily /bin/verifbot") | crontab -
+            fi
+
             cd $HOME
         }
+
         fun_bar 'fun_bot1'
-        [[ $(ps x | grep "bot_plus" | grep -v grep | wc -l) != '0' ]] && echo -e "\n\033[1;32m BOT SSHPLUS ATIVADO !\033[0m" || echo -e "\n\033[1;31m ERRO! REANALISE SUAS INFORMACOES\033[0m"
+
+        if [[ $(ps x | grep "bot_plus" | grep -v grep | wc -l) != '0' ]]; then
+            echo -e "\n\033[1;32m BOT SSHPLUS ATIVADO !\033[0m"
+        else
+            echo -e "\n\033[1;31m ERRO! REANALISE SUAS INFORMAÇÕES\033[0m"
+        fi
         sleep 2
         menu
-    } || {
+    else
         clear
         echo -e "\033[1;32mPARANDO BOT SSHPLUS... \033[0m\n"
         fun_bot2() {
             screen -r -S "bot_plus" -X quit
             screen -wipe 1>/dev/null 2>/dev/null
-            [[ $(grep -wc "bot_plus" /etc/autostart) != '0' ]] && {
+
+            # Remover do autostart
+            if [[ $(grep -wc "bot_plus" /etc/autostart) != '0' ]]; then
                 sed -i '/bot_plus/d' /etc/autostart
-            }
-            [[ $(crontab -l | grep -c "verifbot") != '0' ]] && crontab -l | grep -v 'verifbot' | crontab -
+            fi
+
+            # Remover crontab
+            if [[ $(crontab -l | grep -c "verifbot") != '0' ]]; then
+                crontab -l | grep -v 'verifbot' | crontab -
+            fi
             sleep 1
         }
+
         fun_bar 'fun_bot2'
-        echo -e "\n\033[1;32m \033[1;31mBOT SSHPLUS PARADO! \033[0m"
+        echo -e "\n\033[1;31mBOT SSHPLUS PARADO! \033[0m"
         sleep 2
         menu
-    }
+    fi
 }
 
 fun_instbot() {
@@ -103,5 +129,6 @@ fun_instbot() {
         menu
     }
 }
+
 [[ -f "/etc/SSHPlus/ShellBot.sh" ]] && fun_botOnOff || fun_instbot
 #fim
