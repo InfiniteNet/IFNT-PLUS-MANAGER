@@ -1,42 +1,65 @@
 #!/bin/bash
 datenow=$(date +%s)
+
+# Função para remover usuários do OpenVPN
 remove_ovp () {
-if [[ -e /etc/debian_version ]]; then
-	GROUPNAME=nogroup
-fi
-user="$1"
-cd /etc/openvpn/easy-rsa/
-./easyrsa --batch revoke $user
-./easyrsa gen-crl
-rm -rf pki/reqs/$user.req
-rm -rf pki/private/$user.key
-rm -rf pki/issued/$user.crt
-rm -rf /etc/openvpn/crl.pem
-cp /etc/openvpn/easy-rsa/pki/crl.pem /etc/openvpn/crl.pem
-chown nobody:$GROUPNAME /etc/openvpn/crl.pem
-[[ -e $HOME/$user.ovpn ]] && rm $HOME/$user.ovpn > /dev/null 2>&1
-[[ -e /var/www/html/openvpn/$user.zip ]] && rm /var/www/html/openvpn/$user.zip > /dev/null 2>&1
-} > /dev/null 2>&1
+    if [[ -e /etc/debian_version ]]; then
+        GROUPNAME=nogroup
+    fi
+    user="$1"
+    cd /etc/openvpn/easy-rsa/
+    ./easyrsa --batch revoke $user
+    ./easyrsa gen-crl
+    rm -rf pki/reqs/$user.req pki/private/$user.key pki/issued/$user.crt
+    cp /etc/openvpn/easy-rsa/pki/crl.pem /etc/openvpn/crl.pem
+    chown nobody:$GROUPNAME /etc/openvpn/crl.pem
+    [[ -e $HOME/$user.ovpn ]] && rm $HOME/$user.ovpn
+    [[ -e /var/www/html/openvpn/$user.zip ]] && rm /var/www/html/openvpn/$user.zip
+}
+
+# Exibir o cabeçalho da tabela
 echo -e "\E[44;1;37m Usuario          Data         Estado         Ação   \E[0m"
 echo ""
+
+# Loop para cada usuário do sistema
 for user in $(awk -F: '{print $1}' /etc/passwd); do
-	expdate=$(chage -l $user|awk -F: '/Account expires/{print $2}')
-	echo $expdate|grep -q never && continue
-	datanormal=$(date -d"$expdate" '+%d/%m/%Y')
-	tput setaf 3 ; tput bold ; printf '%-15s%-17s%s' $user $datanormal ; tput sgr0
-	expsec=$(date +%s --date="$expdate")
-	diff=$(echo $datenow - $expsec|bc -l)
-	tput setaf 2 ; tput bold
-	echo $diff|grep -q ^\- && echo "VALIDO   NAO REMOVIDO" && continue
-	tput setaf 1 ; tput bold
-	echo "VENCEU   FOI REMOVIDO"
-	pkill -f $user
-	userdel --force $user
-	grep -v ^$user[[:space:]] /root/usuarios.db > /tmp/ph ; cat /tmp/ph > /root/usuarios.db
-	if [[ -e /etc/openvpn/server.conf ]]; then
-		remove_ovp $user
-	fi
+    expdate=$(chage -l $user | awk -F: '/Account expires/{print $2}')
+    
+    # Se a conta não tiver data de expiração
+    if [[ $expdate == "never" || -z $expdate ]]; then
+        continue
+    fi
+    
+    # Exibir a data em formato legível
+    datanormal=$(date -d "$expdate" '+%d/%m/%Y')
+    tput setaf 3; tput bold; printf '%-15s%-17s' $user $datanormal; tput sgr0
+
+    # Cálculo da expiração
+    expsec=$(date -d "$expdate" +%s)
+    if (( datenow < expsec )); then
+        tput setaf 2; tput bold; echo "VALIDO   NAO REMOVIDO"; tput sgr0
+        continue
+    fi
+
+    # Se a conta expirou
+    tput setaf 1; tput bold; echo "VENCEU   FOI REMOVIDO"; tput sgr0
+    
+    # Matar processos do usuário e removê-lo
+    pkill -f "$user"
+    userdel --force "$user"
+
+    # Remover o usuário do banco de dados
+    grep -v "^$user " /root/usuarios.db > /tmp/ph && mv /tmp/ph /root/usuarios.db
+
+    # Se o OpenVPN estiver configurado, remover o usuário
+    if [[ -e /etc/openvpn/server.conf ]]; then
+        remove_ovp "$user"
+    fi
 done
+
+# Resetar o arquivo de expirações
 echo '0' > /etc/SSHPlus/Exp
-tput sgr0 
+
+# Finalizar a execução
+tput sgr0
 echo ""
