@@ -1,9 +1,32 @@
 #!/bin/bash
 clear
+
+# Remover arquivo de versão anterior, se existir
 [[ -e /home/versao ]] && rm /home/versao
+
+# Baixar a nova versão
 wget -P /home https://raw.githubusercontent.com/InfiniteNet/IFNT-PLUS-MANAGER/master/Install/versao > /dev/null 2>&1
-[[ -f "/home/versao" ]] && {
-	vrs1=$(sed -n '1 p' /bin/versao| sed -e 's/[^0-9]//ig')
-    vrs2=$(sed -n '1 p' /home/versao | sed -e 's/[^0-9]//ig')
-	[[ "$vrs1" != "$vrs2" ]] && mv /home/versao /tmp/att
-}
+
+# Verificar se o arquivo foi baixado com sucesso
+if [[ -f "/home/versao" ]]; then
+    # Verificar se o arquivo de versão atual existe
+    if [[ -f "/bin/versao" ]]; then
+        vrs1=$(sed -n '1 p' /bin/versao | sed -e 's/[^0-9]//ig')
+        vrs2=$(sed -n '1 p' /home/versao | sed -e 's/[^0-9]//ig')
+
+        # Comparar as versões
+        if [[ "$vrs1" != "$vrs2" ]]; then
+            echo "Atualização disponível. Movendo nova versão para /tmp..."
+            mv /home/versao /tmp/att
+        else
+            echo "Você já está usando a versão mais recente."
+        fi
+    else
+        echo "Arquivo de versão atual não encontrado."
+    fi
+else
+    echo "Falha ao baixar a nova versão."
+fi
+
+# Limpar o arquivo baixado se ainda existir
+[[ -e /home/versao ]] && rm /home/versao
