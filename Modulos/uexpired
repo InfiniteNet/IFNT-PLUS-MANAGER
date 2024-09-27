@@ -1,13 +1,34 @@
 #!/bin/bash
+
+# Função para contar usuários expirados
 fun_exp () {
 (
-for _user in $(awk -F: '$3>=1000 {print $1}' /etc/passwd | grep -v nobody); do
-   if [[ $(chage -l $_user |grep "Account expires" |awk -F ': ' '{print $2}') != never ]]; then
-       [[ $(date +%s) -gt $(date '+%s' -d"$(chage -l $_user |grep "Account expires" |awk -F ': ' '{print $2}')") ]] && userexp=$(expr $userexp + 1)
-   fi
-   [[ userexp == [0-9] ]] && userexp=0$userexp
-done
-echo "$userexp" > /etc/SSHPlus/Exp
+    # Inicializar contagem de usuários expirados
+    userexp=0
+
+    # Iterar sobre os usuários com UID >= 1000 (usuários comuns)
+    for _user in $(awk -F: '$3>=1000 {print $1}' /etc/passwd | grep -v nobody); do
+        # Verificar se o usuário tem uma data de expiração
+        expiration_date=$(chage -l $_user | grep "Account expires" | awk -F ': ' '{print $2}')
+        
+        # Se a data de expiração não for "never", verificar se já expirou
+        if [[ "$expiration_date" != "never" ]]; then
+            # Comparar a data atual com a data de expiração
+            if [[ $(date +%s) -gt $(date '+%s' -d"$expiration_date") ]]; then
+                userexp=$(expr $userexp + 1)
+            fi
+        fi
+    done
+
+    # Adicionar um zero à esquerda se for um número de 0 a 9
+    if [[ $userexp -lt 10 ]]; then
+        userexp="0$userexp"
+    fi
+
+    # Salvar o número de usuários expirados em um arquivo
+    echo "$userexp" > /etc/SSHPlus/Exp
 ) &
 }
+
+# Executar a função
 fun_exp > /dev/null 2>&1
