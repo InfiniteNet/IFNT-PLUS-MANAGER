@@ -2,7 +2,7 @@
 * UPDATE --/--/---- - Proyecto Descontinuado
 * TCP-Tweaker-1.0 (Final Versión 1.0)
 ```
-![logo](https://github.com/AAAAAEXQOSyIpN2JZ0ehUQ/SSHPLUS-MANAGER-FREE/blob/master/Imagenes/TCP_Tweaker_TCP_SPEED.jpg)
+![logo](https://github.com/InfiniteNet/IFNT-PLUS-MANAGER/blob/master/Imagenes/TCP_Tweaker_TCP_SPEED.jpg)
 
 # TCP-Tweaker-1.0 (TCP-SPEED)
 TCP TWEAKER 1.0 es una script experimental que cambia algunas configuraciones de red del sistema 
@@ -18,13 +18,13 @@ apt-get update -y
 apt-get upgrade -y
 ```
 ```bash
-wget https://raw.githubusercontent.com/AAAAAEXQOSyIpN2JZ0ehUQ/SSHPLUS-MANAGER-FREE/master/Install/TCP-Speed/tcptweaker.sh && chmod +x tcptweaker.sh* && ./tcptweaker.sh*
+wget https://raw.githubusercontent.com/InfiniteNet/IFNT-PLUS-MANAGER/master/Install/TCP-Speed/tcptweaker.sh && chmod +x tcptweaker.sh* && ./tcptweaker.sh*
 ```
 DATA: Para usar nuevamente ejecute la secuencia: ./tcptweaker.sh
 
 ## :scroll: Changelog
 **VERSION: 1.0**
-* [Details](https://raw.githubusercontent.com/AAAAAEXQOSyIpN2JZ0ehUQ/SSHPLUS-MANAGER-FREE/master/Install/TCP-Speed/versao)
+* [Details](https://raw.githubusercontent.com/InfiniteNet/IFNT-PLUS-MANAGER/master/Install/TCP-Speed/versao)
 
 ## :octocat: Credits
 1. [Phreaker56 Dev](https://t.me/Phreaker56) - Developer of TCP-Tweaker-1.0 (TCP-SPEED)
