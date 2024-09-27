@@ -1,35 +1,92 @@
 #!/bin/bash
+
 clear
-echo -e "                              \033[1;31mBy Alves\033[1;36m"
-echo "   SSHPlus" | figlet
-echo -e "\033[1;32m      INFORMACOES E OPCOES DO MENU \033[0m\n\n"
-echo -e " \033[1;37m[\033[1;31m01\033[1;37m] - \033[1;33m Cria usuario ssh"
-echo -e " \033[1;37m[\033[1;31m02\033[1;37m] - \033[1;33m Cria usuario test ssh"
-echo -e " \033[1;37m[\033[1;31m03\033[1;37m] - \033[1;33m Remove usuario ssh"
-echo -e " \033[1;37m[\033[1;31m04\033[1;37m] - \033[1;33m Monitora usuarios ssh e dropbear"
-echo -e " \033[1;37m[\033[1;31m05\033[1;37m] - \033[1;33m Muda data de usuario ssh"
-echo -e " \033[1;37m[\033[1;31m06\033[1;37m] - \033[1;33m Altera limite de conexoes simutaneas"
-echo -e " \033[1;37m[\033[1;31m07\033[1;37m] - \033[1;33m Altera senha de usuario ssh"
-echo -e " \033[1;37m[\033[1;31m08\033[1;37m] - \033[1;33m Remove todos usuarios expirados"
-echo -e " \033[1;37m[\033[1;31m09\033[1;37m] - \033[1;33m Ativa o limitador de conexoes simutaneas"
-echo -e " \033[1;37m[\033[1;31m10\033[1;37m] - \033[1;33m Modo de conexao squid, dropbear e etc \033[1;32mNEW"
-echo -e " \033[1;37m[\033[1;31m11\033[1;37m] - \033[1;33m Efetua teste de velocidade do servidor \033[1;32mNEW"
-echo -e " \033[1;37m[\033[1;31m12\033[1;37m] - \033[1;33m Define um banner para a vps"
-echo -e " \033[1;37m[\033[1;31m13\033[1;37m] - \033[1;33m Exibe o trafego comsumido"
-echo -e " \033[1;37m[\033[1;31m14\033[1;37m] - \033[1;33m Efetua limpeza e reparacoes de erros \033[1;32mNEW"
-echo -e " \033[1;37m[\033[1;31m15\033[1;37m] - \033[1;33m Instala o OpenVPN "
-echo -e " \033[1;37m[\033[1;31m16\033[1;37m] - \033[1;33m Cria backup de usuarios"
-echo -e " \033[1;37m[\033[1;31m17\033[1;37m] - \033[1;33m Instala o Bad Udp para ligacoes via VoIP"
-echo -e " \033[1;37m[\033[1;31m18\033[1;37m] - \033[1;33m Melhora a latencia 'Experimental'"
-echo -e " \033[1;37m[\033[1;31m19\033[1;37m] - \033[1;33m Exibe o segundo Menu"
-echo -e " \033[1;37m[\033[1;31m20\033[1;37m] - \033[1;33m Adiciona host na vps para conexao squid"
-echo -e " \033[1;37m[\033[1;31m21\033[1;37m] - \033[1;33m Remove host da vps "
-echo -e " \033[1;37m[\033[1;31m22\033[1;37m] - \033[1;33m Reinicia sistema"
-echo -e " \033[1;37m[\033[1;31m23\033[1;37m] - \033[1;33m Reinicia servicos 'squid' 'dropbear' e etc"
-echo -e " \033[1;37m[\033[1;31m24\033[1;37m] - \033[1;33m Opcao para gerenciar a vps pelo telegram \033[1;32mNEW"
-echo -e " \033[1;37m[\033[1;31m25\033[1;37m] - \033[1;33m Exibe informacoes da vps"
-echo -e " \033[1;37m[\033[1;31m26\033[1;37m] - \033[1;33m Muda a senha da vps"
-echo -e " \033[1;37m[\033[1;31m27\033[1;37m] - \033[1;33m Atualiza o script SSHPLUS"
-echo -e " \033[1;37m[\033[1;31m28\033[1;37m] - \033[1;33m Remove o script SSHPLUS"
-echo -e " \033[1;37m[\033[1;31m29\033[1;37m] - \033[1;33m Exibe informacoes sobre o script"
-echo -e " \033[1;37m[\033[1;31m30\033[1;37m] - \033[1;33m Retorna ao menu anterior\033[0m"
+
+# Função para exibir o cabeçalho
+exibir_cabecalho() {
+    echo -e "                              \033[1;31mBy Alves\033[1;36m"
+    echo "   SSHPlus" | figlet
+    echo -e "\033[1;32m      INFORMACOES E OPCOES DO MENU \033[0m\n\n"
+}
+
+# Função para exibir o menu
+exibir_menu() {
+    echo -e " \033[1;37m[\033[1;31m01\033[1;37m] - \033[1;33m Cria usuario ssh"
+    echo -e " \033[1;37m[\033[1;31m02\033[1;37m] - \033[1;33m Cria usuario test ssh"
+    echo -e " \033[1;37m[\033[1;31m03\033[1;37m] - \033[1;33m Remove usuario ssh"
+    echo -e " \033[1;37m[\033[1;31m04\033[1;37m] - \033[1;33m Monitora usuarios ssh e dropbear"
+    echo -e " \033[1;37m[\033[1;31m05\033[1;37m] - \033[1;33m Muda data de usuario ssh"
+    echo -e " \033[1;37m[\033[1;31m06\033[1;37m] - \033[1;33m Altera limite de conexoes simutaneas"
+    echo -e " \033[1;37m[\033[1;31m07\033[1;37m] - \033[1;33m Altera senha de usuario ssh"
+    echo -e " \033[1;37m[\033[1;31m08\033[1;37m] - \033[1;33m Remove todos usuarios expirados"
+    echo -e " \033[1;37m[\033[1;31m09\033[1;37m] - \033[1;33m Ativa o limitador de conexoes simutaneas"
+    echo -e " \033[1;37m[\033[1;31m10\033[1;37m] - \033[1;33m Modo de conexao squid, dropbear e etc \033[1;32mNEW"
+    echo -e " \033[1;37m[\033[1;31m11\033[1;37m] - \033[1;33m Efetua teste de velocidade do servidor \033[1;32mNEW"
+    echo -e " \033[1;37m[\033[1;31m12\033[1;37m] - \033[1;33m Define um banner para a vps"
+    echo -e " \033[1;37m[\033[1;31m13\033[1;37m] - \033[1;33m Exibe o trafego comsumido"
+    echo -e " \033[1;37m[\033[1;31m14\033[1;37m] - \033[1;33m Efetua limpeza e reparacoes de erros \033[1;32mNEW"
+    echo -e " \033[1;37m[\033[1;31m15\033[1;37m] - \033[1;33m Instala o OpenVPN"
+    echo -e " \033[1;37m[\033[1;31m16\033[1;37m] - \033[1;33m Cria backup de usuarios"
+    echo -e " \033[1;37m[\033[1;31m17\033[1;37m] - \033[1;33m Instala o Bad Udp para ligacoes via VoIP"
+    echo -e " \033[1;37m[\033[1;31m18\033[1;37m] - \033[1;33m Melhora a latencia 'Experimental'"
+    echo -e " \033[1;37m[\033[1;31m19\033[1;37m] - \033[1;33m Exibe o segundo Menu"
+    echo -e " \033[1;37m[\033[1;31m20\033[1;37m] - \033[1;33m Adiciona host na vps para conexao squid"
+    echo -e " \033[1;37m[\033[1;31m21\033[1;37m] - \033[1;33m Remove host da vps"
+    echo -e " \033[1;37m[\033[1;31m22\033[1;37m] - \033[1;33m Reinicia sistema"
+    echo -e " \033[1;37m[\033[1;31m23\033[1;37m] - \033[1;33m Reinicia servicos 'squid' 'dropbear' e etc"
+    echo -e " \033[1;37m[\033[1;31m24\033[1;37m] - \033[1;33m Opcao para gerenciar a vps pelo telegram \033[1;32mNEW"
+    echo -e " \033[1;37m[\033[1;31m25\033[1;37m] - \033[1;33m Exibe informacoes da vps"
+    echo -e " \033[1;37m[\033[1;31m26\033[1;37m] - \033[1;33m Muda a senha da vps"
+    echo -e " \033[1;37m[\033[1;31m27\033[1;37m] - \033[1;33m Atualiza o script SSHPLUS"
+    echo -e " \033[1;37m[\033[1;31m28\033[1;37m] - \033[1;33m Remove o script SSHPLUS"
+    echo -e " \033[1;37m[\033[1;31m29\033[1;37m] - \033[1;33m Exibe informacoes sobre o script"
+    echo -e " \033[1;37m[\033[1;31m30\033[1;37m] - \033[1;33m Retorna ao menu anterior\033[0m"
+}
+
+# Função para selecionar a opção do menu
+escolher_opcao() {
+    read -p $'\n\033[1;32mEscolha uma opção:\033[0m ' opcao
+    case $opcao in
+        1) echo "Você escolheu criar um usuário SSH." ;;
+        2) echo "Você escolheu criar um usuário de teste SSH." ;;
+        3) echo "Você escolheu remover um usuário SSH." ;;
+        4) echo "Você escolheu monitorar usuários SSH e Dropbear." ;;
+        5) echo "Você escolheu mudar a data de um usuário SSH." ;;
+        6) echo "Você escolheu alterar o limite de conexões simultâneas." ;;
+        7) echo "Você escolheu alterar a senha de um usuário SSH." ;;
+        8) echo "Você escolheu remover todos os usuários expirados." ;;
+        9) echo "Você escolheu ativar o limitador de conexões simultâneas." ;;
+        10) echo "Você escolheu alterar o modo de conexão Squid, Dropbear, etc." ;;
+        11) echo "Você escolheu efetuar um teste de velocidade no servidor." ;;
+        12) echo "Você escolheu definir um banner para a VPS." ;;
+        13) echo "Você escolheu exibir o tráfego consumido." ;;
+        14) echo "Você escolheu efetuar limpeza e reparações de erros." ;;
+        15) echo "Você escolheu instalar o OpenVPN." ;;
+        16) echo "Você escolheu criar backup de usuários." ;;
+        17) echo "Você escolheu instalar o Bad UDP para VoIP." ;;
+        18) echo "Você escolheu melhorar a latência." ;;
+        19) echo "Você escolheu exibir o segundo menu." ;;
+        20) echo "Você escolheu adicionar um host na VPS para conexão Squid." ;;
+        21) echo "Você escolheu remover um host da VPS." ;;
+        22) echo "Você escolheu reiniciar o sistema." ;;
+        23) echo "Você escolheu reiniciar serviços (Squid, Dropbear, etc)." ;;
+        24) echo "Você escolheu gerenciar a VPS pelo Telegram." ;;
+        25) echo "Você escolheu exibir informações da VPS." ;;
+        26) echo "Você escolheu mudar a senha da VPS." ;;
+        27) echo "Você escolheu atualizar o script SSHPLUS." ;;
+        28) echo "Você escolheu remover o script SSHPLUS." ;;
+        29) echo "Você escolheu exibir informações sobre o script." ;;
+        30) echo "Voltando ao menu anterior..." ; exit 0 ;;
+        *) echo -e "\033[1;31mOpção inválida, por favor tente novamente.\033[0m" ;;
+    esac
+}
+
+# Loop do menu
+while true; do
+    clear
+    exibir_cabecalho
+    exibir_menu
+    escolher_opcao
+    echo -e "\n\033[1;33mPressione qualquer tecla para continuar...\033[0m"
+    read -n 1
+done
